@@ -1,28 +1,43 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { Button, Card, Col, Row } from "react-bootstrap";
-
-// Shape of repository data returned by GitHub
-interface Repo {
-  id: number;
-  name: string;
-  html_url: string;
-  description: string;
-  stargazers_count: number;
-  owner: { login: string };
-}
+import { useState, useEffect, useCallback } from "react";
+import { Button, Col, Row } from "react-bootstrap";
+import RepoCard from "@/components/RepoCard";
+import FrequencySelector, { Frequency } from "@/components/FrequencySelector";
+import type { Repo } from "@/components/types";
 
 export default function Home() {
   const [repos, setRepos] = useState<Repo[]>([]);
   const [loading, setLoading] = useState(false);
+  const [frequency, setFrequency] = useState<Frequency>("weekly");
+  const [customDate, setCustomDate] = useState("");
 
-  // Fetch repositories created in the last week sorted by stars
-  const loadRepos = async () => {
+  const getDate = useCallback((): string => {
+    const now = new Date();
+    switch (frequency) {
+      case "daily":
+        now.setDate(now.getDate() - 1);
+        return now.toISOString().split("T")[0];
+      case "weekly":
+        now.setDate(now.getDate() - 7);
+        return now.toISOString().split("T")[0];
+      case "monthly":
+        now.setMonth(now.getMonth() - 1);
+        return now.toISOString().split("T")[0];
+      case "custom":
+        return customDate;
+      default:
+        return "";
+    }
+  }, [frequency, customDate]);
+
+  const loadRepos = useCallback(async () => {
+    const date = getDate();
+    if (!date) {
+      setRepos([]);
+      return;
+    }
     setLoading(true);
-    const lastWeek = new Date();
-    lastWeek.setDate(lastWeek.getDate() - 7);
-    const date = lastWeek.toISOString().split("T")[0];
 
     try {
       const res = await fetch(
@@ -36,46 +51,39 @@ export default function Home() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [getDate]);
 
-  // Load repos on first render
   useEffect(() => {
     loadRepos();
-  }, []);
+  }, [loadRepos]);
 
   return (
     <main className="container py-4">
       <div className="d-flex justify-content-between align-items-center mb-3">
         <h1 className="h3 m-0">Trending Repositories</h1>
-        {/* Dark button to re-fetch data */}
-        <Button variant="dark" onClick={loadRepos} disabled={loading}>
-          {loading ? "Loading..." : "Refresh"}
-        </Button>
+        <div className="d-flex">
+          <FrequencySelector
+            value={frequency}
+            customDate={customDate}
+            onChange={setFrequency}
+            onCustomDateChange={setCustomDate}
+          />
+          <Button
+            variant="dark"
+            onClick={loadRepos}
+            disabled={loading}
+            className="ms-2"
+          >
+            {loading ? "Loading..." : "Refresh"}
+          </Button>
+        </div>
       </div>
 
       {/* Use card group so all cards share equal height */}
       <Row xs={1} md={2} lg={3} className="g-4 card-group">
         {repos.map((repo) => (
           <Col key={repo.id}>
-            <Card className="h-100">
-              <Card.Body>
-                <Card.Title>
-                  <a href={repo.html_url} target="_blank" rel="noopener noreferrer">
-                    {repo.name}
-                  </a>
-                </Card.Title>
-                <Card.Subtitle className="mb-2 text-muted">
-                  {repo.owner.login}
-                </Card.Subtitle>
-                <Card.Text>{repo.description}</Card.Text>
-              </Card.Body>
-              <Card.Footer>
-                <small className="text-body-secondary">
-                  <i className="bi bi-star-fill me-1"></i>
-                  {repo.stargazers_count}
-                </small>
-              </Card.Footer>
-            </Card>
+            <RepoCard repo={repo} />
           </Col>
         ))}
       </Row>
