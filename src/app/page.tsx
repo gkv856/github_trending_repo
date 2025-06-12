@@ -1,19 +1,16 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { Button, Col, Form, Row } from "react-bootstrap";
+import { Button, Col, Row } from "react-bootstrap";
 import RepoCard from "@/components/RepoCard";
 import FrequencySelector, { Frequency } from "@/components/FrequencySelector";
 import type { Repo } from "@/components/types";
-import useRepoSearch from "@/hooks/useRepoSearch";
 
 export default function Home() {
   const [repos, setRepos] = useState<Repo[]>([]);
   const [loading, setLoading] = useState(false);
   const [frequency, setFrequency] = useState<Frequency>("weekly");
   const [customDate, setCustomDate] = useState("");
-
-  const { query, setQuery, filteredRepos } = useRepoSearch(repos);
 
   const getDate = useCallback((): string => {
     const now = new Date();
@@ -82,20 +79,9 @@ export default function Home() {
         </div>
       </div>
 
-      <Row className="mb-3">
-        <Col>
-          <Form.Control
-            type="text"
-            placeholder="Search repositories..."
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-          />
-        </Col>
-      </Row>
-
       {/* Use card group so all cards share equal height */}
       <Row xs={1} md={2} lg={3} className="g-4 card-group">
-        {filteredRepos.map((repo) => (
+        {repos.map((repo) => (
           <Col key={repo.id}>
             <RepoCard repo={repo} />
           </Col>

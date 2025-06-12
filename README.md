@@ -8,7 +8,7 @@ First, run the development server:
 npm run dev
 ```
 
-The development server runs at [http://localhost:3000](http://localhost:3000). The home page shows the 15 most starred repositories created in the last week. Click **Refresh** to get the latest data. Use the search box to filter repositories by name or owner.
+The development server runs at [http://localhost:3000](http://localhost:3000). The home page shows the 15 most starred repositories created in the last week. Click **Refresh** to get the latest data.
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
