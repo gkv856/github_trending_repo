@@ -1,18 +1,16 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { Button, Col, Row, Form } from "react-bootstrap";
+import { Button, Col, Row } from "react-bootstrap";
 import RepoCard from "@/components/RepoCard";
 import FrequencySelector, { Frequency } from "@/components/FrequencySelector";
 import type { Repo } from "@/components/types";
-import useRepoSearch from "@/hooks/useRepoSearch";
 
 export default function Home() {
   const [repos, setRepos] = useState<Repo[]>([]);
   const [loading, setLoading] = useState(false);
   const [frequency, setFrequency] = useState<Frequency>("weekly");
   const [customDate, setCustomDate] = useState("");
-  const { query, setQuery, filteredRepos } = useRepoSearch(repos);
 
   const getDate = useCallback((): string => {
     const now = new Date();
@@ -64,25 +62,17 @@ export default function Home() {
       <div className="d-flex justify-content-between align-items-center mb-3">
         <h1 className="h3 m-0">Trending Repositories</h1>
         <div className="d-flex">
-          <Form.Control
-            type="search"
-            placeholder="Search"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            className="me-2"
+          <FrequencySelector
+            value={frequency}
+            customDate={customDate}
+            onChange={setFrequency}
+            onCustomDateChange={setCustomDate}
           />
-          <div className="me-2">
-            <FrequencySelector
-              value={frequency}
-              customDate={customDate}
-              onChange={setFrequency}
-              onCustomDateChange={setCustomDate}
-            />
-          </div>
           <Button
             variant="dark"
             onClick={loadRepos}
             disabled={loading}
+            className="ms-2"
           >
             {loading ? "Loading..." : "Refresh"}
           </Button>
@@ -91,7 +81,7 @@ export default function Home() {
 
       {/* Use card group so all cards share equal height */}
       <Row xs={1} md={2} lg={3} className="g-4 card-group">
-        {filteredRepos.map((repo) => (
+        {repos.map((repo) => (
           <Col key={repo.id}>
             <RepoCard repo={repo} />
           </Col>
